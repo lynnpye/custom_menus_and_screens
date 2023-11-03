@@ -1,10 +1,9 @@
 package com.pyehouse.custom_menus_and_screens.common.network;
 
+import com.pyehouse.custom_menus_and_screens.ModMain;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
-
-import static com.pyehouse.custom_menus_and_screens.ModMain.LOGGER;
 
 public class ServerRunActionMessage {
     private boolean messageValid;
@@ -40,7 +39,7 @@ public class ServerRunActionMessage {
 
             retval.messageValid = true;
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            LOGGER.warn("Exception while reading ServerRunActionMessage: " + e);
+            ModMain.logWarn("Exception while reading ServerRunActionMessage: " + e);
         }
         return  retval;
     }

@@ -13,9 +13,7 @@ import java.util.UUID;
 
 public class ModMessage {
     public static void requestClientScreenDisplay(ScreenDef screenDef, @Nonnull Player player) {
-        ModMain.LOGGER.info(">>>> requestClientScreenDisplay started");
         ClientScreenDisplayMessage message = new ClientScreenDisplayMessage(screenDef);
-        ModMain.LOGGER.info(">>>> created message, here we go");
         NetworkConfig.channel.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), message);
     }
 

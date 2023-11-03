@@ -40,16 +40,13 @@ public class ModCommands {
     }
 
     private static int showScreenCommand(CommandContext<CommandSourceStack> commandContext) throws CommandSyntaxException {
-        ModMain.LOGGER.info(">>>> showScreenCommand started");
         Player player = commandContext.getSource().getPlayer();
         String screenDefId = StringArgumentType.getString(commandContext, CMD_showscreen);
         ScreenDef screenDef = Config.getScreenDef(screenDefId);
         if (screenDef == null) {
-            ModMain.LOGGER.info(">>>> screenDef is null");
             commandContext.getSource().sendFailure(Component.literal(String.format("No screenDef exists with screenDef id [%s]", screenDefId)));
             return 1;
         }
-        ModMain.LOGGER.info(">>>> about to send network packet");
         ModMessage.requestClientScreenDisplay(screenDef, player);
         commandContext.getSource().sendSuccess(Component.literal("showing screen"), true);
         return 1;

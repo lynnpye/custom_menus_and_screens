@@ -2,6 +2,8 @@ package com.pyehouse.custom_menus_and_screens.common;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
+import com.pyehouse.custom_menus_and_screens.ModMain;
+import com.pyehouse.custom_menus_and_screens.common.screendef.ComponentDef;
 import com.pyehouse.custom_menus_and_screens.common.screendef.ScreenDef;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -15,17 +17,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import static com.pyehouse.custom_menus_and_screens.ModMain.LOGGER;
 import static com.pyehouse.custom_menus_and_screens.ModMain.MODID;
 
 public class Config {
     public static final ForgeConfigSpec COMMON_SPEC;
-    public static final CommonConfig COMMON;
+    public static final Common COMMON;
     public static final Map<String, ScreenDef> screens = new HashMap<>();
 
     static {
-        final Pair<CommonConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(CommonConfig::new);
+        final Pair<Common, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(Common::new);
         COMMON = specPair.getLeft();
         COMMON_SPEC = specPair.getRight();
     }
@@ -37,9 +39,14 @@ public class Config {
         Config.loadScreens();
     }
 
-    public static class CommonConfig {
-        public CommonConfig(ForgeConfigSpec.Builder builder) {
+    private static final String VAR_requireScreenDefIdMatchFileName = "requireScreenDefIdMatchFileName";
 
+    public static class Common {
+        public final ForgeConfigSpec.BooleanValue requireScreenDefIdMatchFileName;
+        public Common(ForgeConfigSpec.Builder builder) {
+            requireScreenDefIdMatchFileName = builder
+                    .comment("ScreenDef id value in .json will be required to match the filename they are defined in. Useful for organization.")
+                    .define(VAR_requireScreenDefIdMatchFileName, false);
         }
     }
 
@@ -65,8 +72,14 @@ public class Config {
         File screenFolder = new File(FMLPaths.CONFIGDIR.get().toFile(), MODID);
         if (!screenFolder.exists()) {
             if (!screenFolder.mkdir()) {
-                LOGGER.error(String.format("Unable to create screen folder path [%s].", screenFolder.getAbsolutePath()));
+                ModMain.logError(String.format("Unable to create screen folder path [%s].", screenFolder.getAbsolutePath()));
                 return;
+            }
+
+            try {
+                Files.copy(Objects.requireNonNull(Config.class.getResourceAsStream("/README.txt")), new File(screenFolder, "README.txt").toPath());
+            } catch (IOException | NullPointerException e) {
+                ModMain.logError("Unable to copy README.txt to config folder");
             }
         }
         File[] screenFiles = screenFolder.listFiles((file, s) -> s.endsWith(".json"));
@@ -83,12 +96,26 @@ public class Config {
             }
             try {
                 ScreenDef screenDef = ScreenDef.fromJson(Files.readString(Paths.get(screenFile.toURI())));
-                if (screenDef.id == null || screenDef.id.isEmpty()) {
-                    screenDef.id = filename;
+                if (!screenDef.isValid()) {
+                    continue;
+                }
+                boolean invalidComponentFound = false;
+                for (ComponentDef componentDef : screenDef.components) {
+                    if (!componentDef.isValid()) {
+                        invalidComponentFound = true;
+                        break;
+                    }
+                }
+                if (invalidComponentFound) {
+                    continue;
+                }
+                if (Config.screens.containsKey(screenDef.id)) {
+                    ModMain.logError("ScreenDef duplicate id found [%s]. ScreenDef.id must be unique across all ScreenDefs. Skipping this copy.", screenDef.id);
+                    continue;
                 }
                 Config.screens.put(screenDef.id, screenDef);
             } catch (IOException e) {
-                LOGGER.error(String.format("Exception caught while reading screenDef from file [%s]: %s", screenFile.getAbsolutePath(), e));
+                ModMain.logError(String.format("Exception caught while reading screenDef from file [%s]: %s", screenFile.getAbsolutePath(), e));
             }
         }
     }

@@ -2,6 +2,7 @@ package com.pyehouse.custom_menus_and_screens.server;
 
 import com.pyehouse.custom_menus_and_screens.common.Config;
 import com.pyehouse.custom_menus_and_screens.common.network.ServerRunActionMessage;
+import com.pyehouse.custom_menus_and_screens.common.screendef.CommandStackOption;
 import com.pyehouse.custom_menus_and_screens.common.screendef.ComponentDef;
 import com.pyehouse.custom_menus_and_screens.common.screendef.ScreenDef;
 import net.minecraft.commands.CommandSourceStack;
@@ -32,7 +33,7 @@ public class ServerRunActionHandler {
 
         String componentId = message.getComponentId();
         String action = screenDef.closingAction;
-        boolean forceCommandStackPlayer = screenDef.isForceCommandStackPlayer();
+        boolean preferCommandStackPlayer = screenDef.preferCommandStack == CommandStackOption.PLAYER;
 
         if (componentId != null) {
             for (ComponentDef componentDef : screenDef.components) {
@@ -40,7 +41,7 @@ public class ServerRunActionHandler {
                     continue;
                 }
                 action = componentDef.action;
-                forceCommandStackPlayer = componentDef.isForceCommandStackPlayer();
+                preferCommandStackPlayer = componentDef.preferCommandStack == CommandStackOption.PLAYER;
                 break;
             }
         }
@@ -51,10 +52,10 @@ public class ServerRunActionHandler {
 
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         CommandSourceStack commandSourceStack = null;
-        if (action.contains("@s") || action.contains("@p") || forceCommandStackPlayer) {
+        if (preferCommandStackPlayer || action.contains("@s")) {
             Player player = server.getPlayerList().getPlayer(message.getPlayerUUID());
             if (player != null) {
-                commandSourceStack = player.createCommandSourceStack();
+                commandSourceStack = player.createCommandSourceStack().withPermission(4);
             }
         }
         if (commandSourceStack == null) {

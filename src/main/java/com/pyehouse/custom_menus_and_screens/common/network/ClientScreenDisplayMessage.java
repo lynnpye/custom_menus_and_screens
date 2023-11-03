@@ -1,9 +1,8 @@
 package com.pyehouse.custom_menus_and_screens.common.network;
 
+import com.pyehouse.custom_menus_and_screens.ModMain;
 import com.pyehouse.custom_menus_and_screens.common.screendef.ScreenDef;
 import net.minecraft.network.FriendlyByteBuf;
-
-import static com.pyehouse.custom_menus_and_screens.ModMain.LOGGER;
 
 public class ClientScreenDisplayMessage {
     private boolean messageValid;
@@ -28,7 +27,7 @@ public class ClientScreenDisplayMessage {
 
             retval.messageValid = true;
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            LOGGER.warn("Exception while reading ClientScreenDisplayMessage: " + e);
+            ModMain.logWarn("Exception while reading ClientScreenDisplayMessage: " + e);
         }
         return retval;
     }

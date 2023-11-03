@@ -11,7 +11,7 @@ public class WidgetBuilder {
         }
 
         switch (componentDef.type) {
-            case "button": {
+            case BUTTON: {
                 return new ModButton(
                         modScreen,
                         screenDef,

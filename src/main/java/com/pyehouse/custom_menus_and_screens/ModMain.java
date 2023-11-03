@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 @Mod(ModMain.MODID)
 public class ModMain
 {
-    public static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     public static final String MODID = "custom_menus_and_screens";
 
     public ModMain()
@@ -24,6 +24,18 @@ public class ModMain
         Config.initConfig();
 
         initBusAndRegistration();
+    }
+
+    public static void logError(String msg, Object... msgargs) {
+        LOGGER.error(String.format("[%s] %s", MODID, String.format(msg, msgargs)));
+    }
+
+    public static void logWarn(String msg, Object... msgargs) {
+        LOGGER.warn(String.format("[%s] %s", MODID, String.format(msg, msgargs)));
+    }
+
+    public static void logInfo(String msg, Object... msgargs) {
+        LOGGER.warn(String.format("[%s] %s", MODID, String.format(msg, msgargs)));
     }
 
     private void initBusAndRegistration()
